@@ -1,0 +1,8 @@
+{
+  "name": "ISS Live Tracker",
+  "description": "Real-time International Space Station tracking dashboard with map, speed calculation, and astronaut data.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}
