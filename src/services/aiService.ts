@@ -1,27 +1,50 @@
 import { GoogleGenAI } from "@google/genai";
 
-export async function askAI(prompt: string) {
-  const apiKey = process.env.GEMINI_API_KEY;
-
-  if (!apiKey) {
+async function query(data: any) {
+  const hfToken = import.meta.env.VITE_HF_TOKEN || process.env.VITE_HF_TOKEN || process.env.HF_TOKEN;
+  
+  if (!hfToken) {
     throw new Error(
-      "Gemini API key is missing. Please set GEMINI_API_KEY in your environment variables.",
+      "Hugging Face API token is missing. Please set VITE_HF_TOKEN in your environment variables.",
     );
   }
 
-  const ai = new GoogleGenAI({ apiKey });
-
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: prompt,
-      config: {
-        temperature: 0.1,
-        maxOutputTokens: 1000,
+  const response = await fetch(
+    "https://router.huggingface.co/v1/chat/completions",
+    {
+      headers: {
+        Authorization: `Bearer ${hfToken}`,
+        "Content-Type": "application/json",
       },
+      method: "POST",
+      body: JSON.stringify(data),
+    }
+  );
+  if (!response.ok) {
+     const errorText = await response.text();
+     throw new Error(`Hugging Face API returned error ${response.status}: ${errorText}`);
+  }
+  const result = await response.json();
+  return result;
+}
+
+export async function askAI(prompt: string) {
+  try {
+    const response = await query({
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      model: "meta-llama/Llama-3.1-8B-Instruct:novita",
     });
 
-    return response.text;
+    if (response.choices && response.choices.length > 0) {
+      return response.choices[0].message.content;
+    }
+    
+    return JSON.stringify(response);
   } catch (error: any) {
     console.error("AI Service Error:", error);
     throw new Error(error.message || "Failed to get a response from AI.");
