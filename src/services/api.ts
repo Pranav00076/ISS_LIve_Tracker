@@ -36,8 +36,23 @@ export interface AstrosResponse {
 
 export const api = {
   getISSLocation: async (): Promise<ISSLocationResponse> => {
-    const response = await axios.get('/api/iss-now');
-    return response.data;
+    try {
+      // Use where the ISS at API for direct HTTPS client-side fetch on Vercel
+      const response = await axios.get('https://api.wheretheiss.at/v1/satellites/25544');
+      const data = response.data;
+      return {
+        message: "success",
+        timestamp: data.timestamp,
+        iss_position: {
+          latitude: data.latitude.toString(),
+          longitude: data.longitude.toString()
+        }
+      };
+    } catch (error) {
+      // Fallback to local proxy if it exists
+      const response = await axios.get('/api/iss-now');
+      return response.data;
+    }
   },
 
   getNearestPlace: async (lat: string | number, lon: string | number): Promise<string> => {

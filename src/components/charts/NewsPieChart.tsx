@@ -107,7 +107,7 @@ export function NewsPieChart({
           )}
         </div>
       </div>
-      <div className="flex-1 w-full min-h-[250px]">
+      <div className="h-[250px] sm:h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
